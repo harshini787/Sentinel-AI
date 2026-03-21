@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from src.mock_engine import sentinel_engine
+from src.engine import sentinel_engine
 
 # --- 1. PAGE SETUP ---
 st.set_page_config(
