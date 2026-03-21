@@ -1,28 +1,22 @@
-import os
-
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_xai import ChatXAI
+from langchain_groq import ChatGroq
 
 # --------------------------------------------------
 # 1. Setup Environment
 # --------------------------------------------------
 load_dotenv()
-api_key ="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"
+api_key = "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"
 
 if not api_key:
-    raise ValueError("XAI_API_KEY not found in environment variables")
+    raise ValueError("GROQ_API_KEY not found in environment variables")
 
 
 # --------------------------------------------------
-# 2. Initialize LLM (Grok-Beta)
+# 2. Initialize LLM 
 # --------------------------------------------------
-llm = ChatXAI(
-    model="grok-beta",
-    xai_api_key=api_key,
-    temperature=0.0
-)
+llm = ChatGroq(model="openai/gpt-oss-120b", api_key=api_key, temperature=0.0)
 
 
 # --------------------------------------------------
@@ -55,15 +49,10 @@ For each vulnerability found, provide:
 If no vulnerabilities found, state "No security vulnerabilities detected."
 """
 
-hunter_prompt = PromptTemplate(
-    input_variables=["code"],
-    template=hunter_template
-)
+hunter_prompt = PromptTemplate(input_variables=["code"], template=hunter_template)
 
 hunter_runnable = (
-    hunter_prompt
-    | llm
-    | RunnableLambda(lambda x: {"raw_findings": x.content})
+    hunter_prompt | llm | RunnableLambda(lambda x: {"raw_findings": x.content})
 )
 
 
@@ -110,14 +99,11 @@ OUTPUT FORMAT:
 """
 
 skeptic_prompt = PromptTemplate(
-    input_variables=["raw_findings", "code"],
-    template=skeptic_template
+    input_variables=["raw_findings", "code"], template=skeptic_template
 )
 
 skeptic_runnable = (
-    skeptic_prompt
-    | llm
-    | RunnableLambda(lambda x: {"final_audit_report": x.content})
+    skeptic_prompt | llm | RunnableLambda(lambda x: {"final_audit_report": x.content})
 )
 
 
@@ -125,9 +111,10 @@ skeptic_runnable = (
 # ORCHESTRATOR (Sentinel Engine)
 # --------------------------------------------------
 sentinel_engine = (
-    RunnablePassthrough()                          # keeps original input
-    .assign(raw_findings=hunter_runnable)          # run hunter
-    | skeptic_runnable                              # run skeptic
+    RunnablePassthrough().assign(  # keeps original input
+        raw_findings=hunter_runnable
+    )  # run hunter
+    | skeptic_runnable  # run skeptic
 )
 
 
@@ -140,9 +127,7 @@ if __name__ == "__main__":
     cursor.execute(query)
     """
 
-    result = sentinel_engine.invoke(
-        {"code": sample_code}
-    )
+    result = sentinel_engine.invoke({"code": sample_code})
 
     print("\n===== FINAL SECURITY AUDIT =====\n")
     print(result["final_audit_report"])
