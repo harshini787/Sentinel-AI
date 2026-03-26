@@ -7,7 +7,7 @@ from langchain_groq import ChatGroq
 # 1. Setup Environment
 # --------------------------------------------------
 load_dotenv()
-api_key = "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"
+api_key = "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"
 
 if not api_key:
     raise ValueError("GROQ_API_KEY not found in environment variables")
