@@ -3,25 +3,15 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_groq import ChatGroq
 
-# --------------------------------------------------
-# 1. Setup Environment
-# --------------------------------------------------
 load_dotenv()
 api_key = "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"
 
 if not api_key:
     raise ValueError("GROQ_API_KEY not found in environment variables")
 
-
-# --------------------------------------------------
-# 2. Initialize LLM 
-# --------------------------------------------------
 llm = ChatGroq(model="openai/gpt-oss-120b", api_key=api_key, temperature=0.0)
 
 
-# --------------------------------------------------
-# AGENT 1: HUNTER (Find vulnerabilities)
-# --------------------------------------------------
 hunter_template = """
 You are 'Hunter-AI', a specialized Cybersecurity Research Agent.
 Your goal is to perform a comprehensive vulnerability scan on the provided code.
@@ -56,9 +46,6 @@ hunter_runnable = (
 )
 
 
-# --------------------------------------------------
-# AGENT 2: SKEPTIC (Validate + Fix)
-# --------------------------------------------------
 skeptic_template = """
 You are 'Skeptic-Auditor', a Senior Security Engineer with 15+ years of experience.
 
@@ -106,10 +93,6 @@ skeptic_runnable = (
     skeptic_prompt | llm | RunnableLambda(lambda x: {"final_audit_report": x.content})
 )
 
-
-# --------------------------------------------------
-# ORCHESTRATOR (Sentinel Engine)
-# --------------------------------------------------
 sentinel_engine = (
     RunnablePassthrough().assign(  # keeps original input
         raw_findings=hunter_runnable
@@ -118,9 +101,6 @@ sentinel_engine = (
 )
 
 
-# --------------------------------------------------
-# Example Invocation
-# --------------------------------------------------
 if __name__ == "__main__":
     sample_code = """
     query = "SELECT * FROM users WHERE id = " + user_id
